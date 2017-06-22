@@ -7,16 +7,17 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.ConsumerCancelledException;
 import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.QueueingConsumer;
+import com.rabbitmq.client.ShutdownSignalException;
 
-public class TestConsumer {
+public class AckConsumer {
     private final static String routingKey = "test";
     private final static String exchangeName = "myexchange";
     private final static String queueName = "myqueuename";
 
-    public static void main(String[] args) throws IOException, TimeoutException {
+    public static void main(String[] args) throws IOException, TimeoutException, ShutdownSignalException, ConsumerCancelledException, InterruptedException {
         // 创建连接工厂
         ConnectionFactory factory = new ConnectionFactory();
         //设置RabbitMQ地址
@@ -35,16 +36,20 @@ public class TestConsumer {
         System.out.println("Customer Waiting Received messages");
         //DefaultConsumer类实现了Consumer接口，通过传入一个频道，
         // 告诉服务器我们需要那个频道的消息，如果频道中有消息，就会执行回调函数handleDelivery
-        Consumer consumer = new DefaultConsumer(channel) {
+        QueueingConsumer consumer = new QueueingConsumer(channel){
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope,
                                        AMQP.BasicProperties properties, byte[] body)
                     throws IOException {
                 String message = new String(body, "UTF-8");
-                System.out.println("TestConsumer Customer Received '" + message + "'");
+                System.out.println("AckConsumer Customer Received '" + message + "'");
             }
         };
-        //自动回复队列应答 -- RabbitMQ中的消息确认机制
-        channel.basicConsume(queueName, true, consumer);
+        
+        channel.basicConsume(queueName, false, consumer);
+        
+        QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+//        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false); 
     }
+	
 }
