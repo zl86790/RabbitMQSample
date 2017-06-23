@@ -15,7 +15,7 @@ import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.ShutdownSignalException;
 
-public class GetConsumer {
+public class GetConsumerByReject {
     private final static String routingKey = "test";
     private final static String exchangeName = "myexchange";
     private final static String queueName = "myqueuename";
@@ -40,7 +40,17 @@ public class GetConsumer {
 
         GetResponse response = channel.basicGet(queueName, false);
         System.out.println(response.getBody());
-        channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+        
+        
+//        channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+        
+        //long deliveryTag, boolean multiple, boolean requeue
+        //nack 的 multiple 机制会自动把不大于指定 delivery_tag 的消息提取都 reject掉
+        //channel.basicNack(response.getEnvelope().getDeliveryTag(), false, true);
+        
+        //long deliveryTag, boolean requeue
+        channel.basicReject(response.getEnvelope().getDeliveryTag(), true);
+        
         connection.close();
     }
 }

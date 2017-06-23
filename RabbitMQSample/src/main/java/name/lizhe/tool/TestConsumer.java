@@ -42,6 +42,7 @@ public class TestConsumer {
                     throws IOException {
                 String message = new String(body, "UTF-8");
                 System.out.println("TestConsumer Customer Received '" + message + "'");
+                
             }
         };
         //自动回复队列应答 -- RabbitMQ中的消息确认机制

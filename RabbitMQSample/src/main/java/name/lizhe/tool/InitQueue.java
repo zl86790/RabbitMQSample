@@ -12,7 +12,7 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 
 public class InitQueue {
-    private final static String routingKey = "test.*.name";
+    private final static String routingKey = "test";
     private final static String exchangeName = "myexchange";
     private final static String queueName = "myqueuename";
 
@@ -28,9 +28,9 @@ public class InitQueue {
         Connection connection = factory.newConnection();
         //创建一个通道
         Channel channel = connection.createChannel();
-        channel.exchangeDeclare("myexchange", "topic");
+        channel.exchangeDeclare("myexchange", "direct");
         //声明要关注的队列
-        channel.queueDeclare(queueName, false, false, false, null);
+        channel.queueDeclare(queueName, true, false, false, null);
         channel.queueBind(queueName, exchangeName, routingKey);
         System.out.println("Customer Waiting Received messages");
       
