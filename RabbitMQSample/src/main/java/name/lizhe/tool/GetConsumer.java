@@ -7,12 +7,15 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.ConsumerCancelledException;
+import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.ShutdownSignalException;
 
-public class AckConsumer {
+public class GetConsumer {
     private final static String routingKey = "test";
     private final static String exchangeName = "myexchange";
     private final static String queueName = "myqueuename";
@@ -34,20 +37,10 @@ public class AckConsumer {
         channel.queueDeclare(queueName, false, false, true, null);
         channel.queueBind(queueName, exchangeName, routingKey);  
         System.out.println("Customer Waiting Received messages");
-        //DefaultConsumer类实现了Consumer接口，通过传入一个频道，
-        // 告诉服务器我们需要那个频道的消息，如果频道中有消息，就会执行回调函数handleDelivery
-        QueueingConsumer consumer = new QueueingConsumer(channel){
-            @Override
-            public void handleDelivery(String consumerTag, Envelope envelope,
-                                       AMQP.BasicProperties properties, byte[] body)
-                    throws IOException {
-                String message = new String(body, "UTF-8");
-                System.out.println("AckConsumer Customer Received '" + message + "'");
-            }
-        };
-        
-        channel.basicConsume(queueName, false, consumer);
-        
+
+        GetResponse response = channel.basicGet(queueName, false);
+        System.out.println(response.getBody());
+        channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+        connection.close();
     }
-	
 }
